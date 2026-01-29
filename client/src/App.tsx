@@ -7,6 +7,7 @@ import Dashboard from "@/pages/Dashboard";
 import MapView from "@/pages/MapView";
 import History from "@/pages/History";
 import Settings from "@/pages/Settings";
+import EvStations from "@/pages/EvStations";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -15,6 +16,7 @@ function Router() {
       <Route path="/" component={Dashboard} />
       <Route path="/map" component={MapView} />
       <Route path="/history" component={History} />
+      <Route path="/ev" component={EvStations} />
       <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>

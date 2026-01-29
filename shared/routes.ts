@@ -14,7 +14,7 @@ export const api = {
       }),
       responses: {
         200: z.object({
-          spots: z.array(z.custom<any>()), // Using custom for the complex prediction object
+          spots: z.array(z.custom<any>()),
           insights: z.object({
             bestSpotId: z.number(),
             summary: z.string(),
@@ -27,7 +27,37 @@ export const api = {
       method: 'GET' as const,
       path: '/api/history',
       responses: {
-        200: z.array(z.custom<typeof parkingSpots.$inferSelect>())
+        200: z.array(z.custom<any>())
+      }
+    },
+    cities: {
+      method: 'GET' as const,
+      path: '/api/cities',
+      responses: {
+        200: z.array(z.custom<any>())
+      }
+    },
+    evStations: {
+      method: 'GET' as const,
+      path: '/api/ev-stations',
+      input: z.object({
+        cityId: z.string().transform(val => parseInt(val))
+      }),
+      responses: {
+        200: z.array(z.custom<any>())
+      }
+    },
+    reports: {
+      method: 'POST' as const,
+      path: '/api/reports',
+      input: z.object({
+        type: z.string(),
+        latitude: z.string(),
+        longitude: z.string(),
+        description: z.string().optional()
+      }),
+      responses: {
+        201: z.custom<any>()
       }
     }
   }

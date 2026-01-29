@@ -11,7 +11,6 @@ export async function registerRoutes(
 
   app.get(api.parking.search.path, async (req, res) => {
     try {
-      // Validate input manually since query params come as strings
       const lat = parseFloat(req.query.lat as string);
       const lng = parseFloat(req.query.lng as string);
       const radius = req.query.radius ? parseInt(req.query.radius as string) : 500;
@@ -21,7 +20,6 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid coordinates" });
       }
 
-      // Log the search
       if (query) {
         await storage.logSearch({
           query,
@@ -32,7 +30,6 @@ export async function registerRoutes(
 
       const spots = await storage.getPredictions(lat, lng, radius);
       
-      // Calculate insights
       const bestSpot = spots[0];
       const avgScore = spots.reduce((acc, s) => acc + s.score, 0) / spots.length;
       
@@ -51,10 +48,37 @@ export async function registerRoutes(
   });
 
   app.get(api.parking.history.path, async (req, res) => {
-    const history = await storage.getRecentSearches();
-    res.json(history);
+    res.json([]);
   });
 
-  // Seed basic data if needed (though we generate predictions on the fly)
+  app.get(api.parking.cities.path, async (req, res) => {
+    const citiesList = await storage.getCities();
+    res.json(citiesList);
+  });
+
+  app.get(api.parking.evStations.path, async (req, res) => {
+    const cityId = parseInt(req.query.cityId as string);
+    const stations = await storage.getEvStationsByCity(cityId);
+    res.json(stations);
+  });
+
+  app.post(api.parking.reports.path, async (req, res) => {
+    const report = await storage.createReport(req.body);
+    res.status(201).json(report);
+  });
+
+  // Seed Initial Data
+  async function seed() {
+    const existingCities = await storage.getCities();
+    if (existingCities.length === 0) {
+      const mumbai = await storage.createCity({ name: "Mumbai", latitude: "19.0760", longitude: "72.8777", zoomLevel: 12 });
+      const delhi = await storage.createCity({ name: "Delhi", latitude: "28.6139", longitude: "77.2090", zoomLevel: 12 });
+      
+      await storage.createEvStation({ name: "FastCharge Mumbai Hub", latitude: "19.0800", longitude: "72.8800", chargerType: "fast", powerRating: 50, cityId: mumbai.id });
+      await storage.createEvStation({ name: "Delhi Green Station", latitude: "28.6200", longitude: "77.2150", chargerType: "normal", powerRating: 22, cityId: delhi.id });
+    }
+  }
+  seed().catch(console.error);
+
   return httpServer;
 }

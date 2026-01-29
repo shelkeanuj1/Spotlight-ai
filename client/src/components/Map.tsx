@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from "react-leaflet";
 import L from "leaflet";
-import { ParkingPrediction } from "@shared/schema";
+import { ParkingPrediction, EvStation } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Navigation } from "lucide-react";
+import { api } from "@shared/routes";
+import { useQuery } from "@tanstack/react-query";
 
 // Fix Leaflet default icon issue
 import icon from "leaflet/dist/images/marker-icon.png";
@@ -32,6 +34,7 @@ const userIcon = createCustomIcon("#3b82f6"); // Blue
 const highProbIcon = createCustomIcon("#22c55e"); // Green
 const medProbIcon = createCustomIcon("#eab308"); // Yellow
 const lowProbIcon = createCustomIcon("#ef4444"); // Red
+const evIcon = createCustomIcon("#0ea5e9"); // Sky Blue for EV
 
 interface MapProps {
   center: { lat: number; lng: number };
@@ -50,6 +53,14 @@ function MapUpdater({ center }: { center: { lat: number; lng: number } }) {
 }
 
 export function ParkingMap({ center, spots, onSpotSelect, selectedSpotId }: MapProps) {
+  const { data: evStations } = useQuery({
+    queryKey: [api.parking.evStations.path, 1], // Default to first city for map view
+    queryFn: async () => {
+      const res = await fetch(`${api.parking.evStations.path}?cityId=1`);
+      return res.json();
+    }
+  });
+
   return (
     <div className="h-full w-full rounded-2xl overflow-hidden shadow-lg border border-border/50 relative z-0">
       <MapContainer 
@@ -70,6 +81,13 @@ export function ParkingMap({ center, spots, onSpotSelect, selectedSpotId }: MapP
             <div className="text-center font-medium">You are here</div>
           </Popup>
         </Marker>
+
+        {/* Search Radius */}
+        <Circle 
+          center={center} 
+          radius={500} 
+          pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.1 }} 
+        />
 
         {/* Parking Spots */}
         {spots.map((spot) => (
@@ -106,9 +124,50 @@ export function ParkingMap({ center, spots, onSpotSelect, selectedSpotId }: MapP
                   <p>{spot.availableSpaces} spots available</p>
                   <p className="text-primary font-medium">{spot.legalStatus}</p>
                 </div>
-                <Button size="sm" className="w-full gap-2" onClick={() => onSpotSelect(spot)}>
+                <Button 
+                  size="sm" 
+                  className="w-full gap-2" 
+                  onClick={() => {
+                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${spot.location.lat},${spot.location.lng}`, '_blank');
+                  }}
+                >
                   <Navigation className="h-3 w-3" />
                   Navigate
+                </Button>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+
+        {/* EV Stations */}
+        {evStations?.map((station: EvStation) => (
+          <Marker 
+            key={`ev-${station.id}`} 
+            position={[parseFloat(station.latitude), parseFloat(station.longitude)]}
+            icon={evIcon}
+          >
+            <Popup>
+              <div className="min-w-[200px]">
+                <h4 className="font-bold text-blue-600 flex items-center gap-2">
+                  ⚡ {station.name}
+                </h4>
+                <div className="space-y-1 text-sm text-muted-foreground my-2">
+                  <p>{station.chargerType.toUpperCase()} Charger</p>
+                  <p className="font-bold text-foreground">{station.powerRating}kW Power</p>
+                  <p className={station.available ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
+                    {station.available ? "Ready to use" : "Occupied"}
+                  </p>
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="w-full gap-2" 
+                  onClick={() => {
+                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${station.latitude},${station.longitude}`, '_blank');
+                  }}
+                >
+                  <Navigation className="h-3 w-3" />
+                  Navigate to Charger
                 </Button>
               </div>
             </Popup>

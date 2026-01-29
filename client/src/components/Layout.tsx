@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Map as MapIcon, History, Settings, Menu, X, ParkingSquare } from "lucide-react";
+import { LayoutDashboard, Map as MapIcon, History, Settings, Menu, X, ParkingSquare, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,6 +17,7 @@ export function Layout({ children }: LayoutProps) {
     { icon: LayoutDashboard, label: "Dashboard", href: "/" },
     { icon: MapIcon, label: "Map View", href: "/map" },
     { icon: History, label: "History", href: "/history" },
+    { icon: Zap, label: "EV Stations", href: "/ev" },
     { icon: Settings, label: "Settings", href: "/settings" },
   ];
 

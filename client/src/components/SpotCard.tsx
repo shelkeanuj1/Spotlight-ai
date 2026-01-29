@@ -85,8 +85,16 @@ export function SpotCard({ spot, isSelected, onClick }: SpotCardProps) {
             "h-9 px-6 rounded-xl font-bold transition-all",
             isSelected ? "shadow-lg shadow-primary/20" : "hover:bg-primary hover:text-white"
           )}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (isSelected) {
+              window.open(`https://www.google.com/maps/dir/?api=1&destination=${spot.location.lat},${spot.location.lng}`, '_blank');
+            } else {
+              onClick();
+            }
+          }}
         >
-          {isSelected ? "Navigating" : "Park Here"}
+          {isSelected ? "Navigate" : "Park Here"}
         </Button>
       </div>
     </Card>
