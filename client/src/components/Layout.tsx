@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { LayoutDashboard, Map as MapIcon, History, Settings, Menu, X, ParkingSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -47,20 +48,26 @@ export function Layout({ children }: LayoutProps) {
             <span className="font-display font-bold text-xl tracking-tight">SpotLight AI</span>
           </div>
 
-          <nav className="space-y-2 flex-1">
+          <nav className="space-y-1.5 flex-1">
             {navItems.map((item) => {
               const isActive = location === item.href;
               const Icon = item.icon;
               return (
                 <Link key={item.href} href={item.href}>
                   <div className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer group",
+                    "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 cursor-pointer group relative overflow-hidden",
                     isActive 
-                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/25" 
-                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]" 
+                      : "text-muted-foreground hover:bg-primary/5 hover:text-primary"
                   )}>
-                    <Icon className={cn("h-5 w-5", isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-primary")} />
-                    <span className="font-medium">{item.label}</span>
+                    {isActive && (
+                      <motion.div 
+                        layoutId="nav-glow"
+                        className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent opacity-50"
+                      />
+                    )}
+                    <Icon className={cn("h-5 w-5 transition-transform duration-300 group-hover:scale-110 relative z-10", isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-primary")} />
+                    <span className="font-semibold relative z-10">{item.label}</span>
                   </div>
                 </Link>
               );
