@@ -4,99 +4,144 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { User, Bell, Shield, Car, Moon, CreditCard } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { useState } from "react";
+import { User, Bell, Shield, Car, Brain, CreditCard, LogOut } from "lucide-react";
 
 export default function Settings() {
+  const { user, logout } = useAuth();
+
+  const [darkMode, setDarkMode] = useState(false);
+  const [aiEnabled, setAiEnabled] = useState(true);
+  const [trafficEnabled, setTrafficEnabled] = useState(true);
+  const [coveredParking, setCoveredParking] = useState(true);
+
   return (
     <Layout>
-      <div className="max-w-2xl mx-auto space-y-8 pb-10">
+      <div className="max-w-6xl mx-auto space-y-10 pb-10">
+
         <div>
-          <h1 className="text-3xl font-display font-bold text-foreground">Settings</h1>
-          <p className="text-muted-foreground mt-1">Manage your preferences and account details</p>
+          <h1 className="text-4xl font-bold">Settings</h1>
+          <p className="text-muted-foreground">
+            Manage your account and AI preferences
+          </p>
         </div>
 
-        <div className="space-y-6">
-          {/* Profile Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+          {/* PROFILE */}
           <section className="space-y-4">
             <h2 className="text-xl font-semibold flex items-center gap-2">
-              <User className="h-5 w-5 text-primary" /> Profile Information
+              <User className="text-primary" /> Profile
             </h2>
-            <Card className="p-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>First Name</Label>
-                  <Input defaultValue="John" />
+
+            <Card className="p-6 space-y-5">
+              <div className="flex items-center gap-4">
+                <div className="h-14 w-14 rounded-full bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-white text-xl font-bold">
+                  {user?.name?.[0] || "G"}
                 </div>
-                <div className="space-y-2">
-                  <Label>Last Name</Label>
-                  <Input defaultValue="Doe" />
+                <div>
+                  <p className="font-semibold text-lg">
+                    {user?.name || "Guest User"}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {user?.email || "Not logged in"}
+                  </p>
                 </div>
               </div>
+
+              <div className="space-y-2">
+                <Label>Name</Label>
+                <Input value={user?.name || ""} disabled />
+              </div>
+
               <div className="space-y-2">
                 <Label>Email</Label>
-                <Input defaultValue="john.doe@example.com" type="email" />
+                <Input value={user?.email || ""} disabled />
               </div>
-              <Button>Save Changes</Button>
             </Card>
           </section>
 
-          {/* Preferences */}
+          {/* AI & THEME */}
           <section className="space-y-4">
             <h2 className="text-xl font-semibold flex items-center gap-2">
-              <Car className="h-5 w-5 text-primary" /> Parking Preferences
+              <Brain className="text-primary" /> AI & Theme
             </h2>
+
             <Card className="p-6 space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-base">Prioritize Covered Parking</Label>
-                  <p className="text-sm text-muted-foreground">Prefer garages over street parking</p>
-                </div>
-                <Switch defaultChecked />
+              <div className="flex justify-between items-center">
+                <span>Dark Mode</span>
+                <Switch checked={darkMode} onCheckedChange={setDarkMode} />
               </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-base">Walking Distance Limit</Label>
-                  <p className="text-sm text-muted-foreground">Alert if spot is &gt; 500m away</p>
-                </div>
-                <Switch defaultChecked />
+
+              <div className="flex justify-between items-center">
+                <span>AI Predictions</span>
+                <Switch checked={aiEnabled} onCheckedChange={setAiEnabled} />
               </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-base">Price Sensitivity</Label>
-                  <p className="text-sm text-muted-foreground">Show cheapest spots first</p>
-                </div>
-                <Switch />
+
+              <div className="flex justify-between items-center">
+                <span>Traffic Optimization</span>
+                <Switch checked={trafficEnabled} onCheckedChange={setTrafficEnabled} />
               </div>
             </Card>
           </section>
 
-          {/* Notifications */}
+          {/* PARKING */}
           <section className="space-y-4">
             <h2 className="text-xl font-semibold flex items-center gap-2">
-              <Bell className="h-5 w-5 text-primary" /> Notifications
+              <Car className="text-primary" /> Parking Preferences
             </h2>
+
             <Card className="p-6 space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-base">Push Notifications</Label>
-                  <p className="text-sm text-muted-foreground">Receive alerts about parking availability</p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-base">Email Updates</Label>
-                  <p className="text-sm text-muted-foreground">Weekly summary of your parking history</p>
-                </div>
-                <Switch />
+              <div className="flex justify-between items-center">
+                <span>Covered Parking Priority</span>
+                <Switch checked={coveredParking} onCheckedChange={setCoveredParking} />
               </div>
             </Card>
           </section>
 
-          <Button variant="destructive" className="w-full sm:w-auto">
-            Log Out
-          </Button>
+          {/* SECURITY */}
+          <section className="space-y-4">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <Shield className="text-primary" /> Security
+            </h2>
+
+            <Card className="p-6 space-y-4">
+              <Button variant="outline">Change Password</Button>
+            </Card>
+          </section>
+
+          {/* SUBSCRIPTION */}
+          <section className="space-y-4">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <CreditCard className="text-primary" /> Subscription
+            </h2>
+
+            <Card className="p-6 flex justify-between items-center">
+              <div>
+                <p className="font-semibold">Premium Plan</p>
+                <p className="text-sm text-muted-foreground">
+                  Unlimited AI features
+                </p>
+              </div>
+              <Button variant="outline">Manage</Button>
+            </Card>
+          </section>
+
         </div>
+
+        {/* LOGOUT */}
+        {user && (
+          <Button
+            variant="destructive"
+            className="flex gap-2"
+            onClick={logout}
+          >
+            <LogOut className="h-4 w-4" />
+            Logout
+          </Button>
+        )}
+
       </div>
     </Layout>
   );

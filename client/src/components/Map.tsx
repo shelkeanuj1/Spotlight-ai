@@ -1,178 +1,197 @@
-import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from "react-leaflet";
+import { useEffect } from "react";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  useMap,
+  Circle,
+  Polyline,
+} from "react-leaflet";
 import L from "leaflet";
-import { ParkingPrediction, EvStation } from "@shared/schema";
-import { Badge } from "@/components/ui/badge";
+import { ParkingPrediction } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Navigation } from "lucide-react";
-import { api } from "@shared/routes";
-import { useQuery } from "@tanstack/react-query";
+import "leaflet/dist/leaflet.css";
 
-// Fix Leaflet default icon issue
-import icon from "leaflet/dist/images/marker-icon.png";
-import iconShadow from "leaflet/dist/images/marker-shadow.png";
-
-let DefaultIcon = L.icon({
-  iconUrl: icon,
-  shadowUrl: iconShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
-L.Marker.prototype.options.icon = DefaultIcon;
-
-// Custom Icons
-const createCustomIcon = (color: string) => {
-  return L.divIcon({
-    className: "custom-icon",
-    html: `<div style="background-color: ${color}; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>`,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
+// ===== ICONS =====
+const createIcon = (color: string, label: string) =>
+  L.divIcon({
+    className: "custom-marker",
+    html: `
+      <div style="
+        background:${color};
+        width:30px;
+        height:30px;
+        border-radius:50%;
+        border:3px solid white;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color:white;
+        font-weight:bold;
+        font-size:13px;
+        box-shadow:0 6px 12px rgba(0,0,0,0.35);
+      ">
+        ${label}
+      </div>
+    `,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
   });
-};
 
-const userIcon = createCustomIcon("#3b82f6"); // Blue
-const highProbIcon = createCustomIcon("#22c55e"); // Green
-const medProbIcon = createCustomIcon("#eab308"); // Yellow
-const lowProbIcon = createCustomIcon("#ef4444"); // Red
-const evIcon = createCustomIcon("#0ea5e9"); // Sky Blue for EV
+const userIcon = createIcon("#2563eb", "U");
+const highIcon = createIcon("#22c55e", "P");
+const medIcon = createIcon("#facc15", "P");
+const lowIcon = createIcon("#ef4444", "P");
+const selectedIcon = createIcon("#000000", "★");
 
+// ===== TYPES =====
 interface MapProps {
   center: { lat: number; lng: number };
+  userLocation?: { lat: number; lng: number } | null;
+  targetLocation?: { lat: number; lng: number } | null;
   spots: ParkingPrediction[];
+  selectedSpot?: ParkingPrediction | null;
   onSpotSelect: (spot: ParkingPrediction) => void;
-  selectedSpotId?: number;
 }
 
-// Component to handle map movement
+// ===== MAP CAMERA UPDATE =====
 function MapUpdater({ center }: { center: { lat: number; lng: number } }) {
   const map = useMap();
+
   useEffect(() => {
-    map.flyTo(center, 15, { duration: 2 });
-  }, [center, map]);
+    map.flyTo([center.lat, center.lng], 15, { duration: 1.2 });
+  }, [center.lat, center.lng]);
+
   return null;
 }
 
-export function ParkingMap({ center, spots, onSpotSelect, selectedSpotId }: MapProps) {
-  const { data: evStations } = useQuery({
-    queryKey: [api.parking.evStations.path, 1], // Default to first city for map view
-    queryFn: async () => {
-      const res = await fetch(`${api.parking.evStations.path}?cityId=1`);
-      return res.json();
-    }
-  });
+export function ParkingMap({
+  center,
+  userLocation,
+  targetLocation,
+  spots,
+  selectedSpot,
+  onSpotSelect,
+}: MapProps) {
+  // ✅ DEBUG: check spots from backend
+  useEffect(() => {
+    console.log("🅿️ Spots received:", spots);
+  }, [spots]);
+
+  const routePoints =
+    selectedSpot && center
+      ? [
+          [center.lat, center.lng],
+          [
+            Number(selectedSpot.location.lat),
+            Number(selectedSpot.location.lng),
+          ],
+        ]
+      : [];
+
+  const navigateTo = (lat: number, lng: number) => {
+    window.open(
+      `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
+      "_blank"
+    );
+  };
 
   return (
-    <div className="h-full w-full rounded-2xl overflow-hidden shadow-lg border border-border/50 relative z-0">
-      <MapContainer 
-        center={center} 
-        zoom={14} 
-        scrollWheelZoom={true} 
+    <div className="h-full w-full rounded-2xl overflow-hidden border border-border/50 shadow-xl">
+      {/* 🔥 IMPORTANT: key forces map refresh when spots change */}
+      <MapContainer
+        key={JSON.stringify(spots)}
+        center={[center.lat, center.lng]}
+        zoom={14}
         className="h-full w-full"
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-        />
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
         <MapUpdater center={center} />
 
-        {/* User Location */}
-        <Marker position={center} icon={userIcon}>
-          <Popup>
-            <div className="text-center font-medium">You are here</div>
-          </Popup>
-        </Marker>
+        {/* 👤 USER LOCATION */}
+        {userLocation && (
+          <>
+            <Marker
+              position={[userLocation.lat, userLocation.lng]}
+              icon={userIcon}
+            >
+              <Popup>📍 You are here</Popup>
+            </Marker>
 
-        {/* Search Radius */}
-        <Circle 
-          center={center} 
-          radius={500} 
-          pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.1 }} 
-        />
+            <Circle
+              center={[userLocation.lat, userLocation.lng]}
+              radius={700}
+              pathOptions={{ color: "#2563eb", fillOpacity: 0.08 }}
+            />
+          </>
+        )}
 
-        {/* Parking Spots */}
-        {spots.map((spot) => (
-          <Marker
-            key={spot.id}
-            position={[spot.location.lat, spot.location.lng]}
-            icon={
-              spot.probability === "High" ? highProbIcon :
-              spot.probability === "Medium" ? medProbIcon : lowProbIcon
-            }
-            eventHandlers={{
-              click: () => onSpotSelect(spot),
-            }}
-          >
-            <Popup>
-              <div className="min-w-[200px]">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-bold text-base">{spot.name}</h3>
-                  <Badge 
-                    variant={
-                      spot.probability === "High" ? "default" : 
-                      spot.probability === "Medium" ? "secondary" : "destructive"
-                    }
-                    className={
-                      spot.probability === "High" ? "bg-green-500 hover:bg-green-600" : 
-                      spot.probability === "Medium" ? "bg-yellow-500 hover:bg-yellow-600" : ""
-                    }
-                  >
-                    {spot.probability}
-                  </Badge>
-                </div>
-                <div className="space-y-1 text-sm text-muted-foreground mb-3">
-                  <p>{spot.distance} away • {spot.walkingTime} walk</p>
-                  <p>{spot.availableSpaces} spots available</p>
-                  <p className="text-primary font-medium">{spot.legalStatus}</p>
-                </div>
-                <Button 
-                  size="sm" 
-                  className="w-full gap-2" 
-                  onClick={() => {
-                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${spot.location.lat},${spot.location.lng}`, '_blank');
-                  }}
-                >
-                  <Navigation className="h-3 w-3" />
-                  Navigate
-                </Button>
-              </div>
-            </Popup>
+        {/* 🎯 DESTINATION */}
+        {targetLocation && (
+          <Marker position={[targetLocation.lat, targetLocation.lng]}>
+            <Popup>🎯 Destination</Popup>
           </Marker>
-        ))}
+        )}
 
-        {/* EV Stations */}
-        {evStations?.map((station: EvStation) => (
-          <Marker 
-            key={`ev-${station.id}`} 
-            position={[parseFloat(station.latitude), parseFloat(station.longitude)]}
-            icon={evIcon}
-          >
-            <Popup>
-              <div className="min-w-[200px]">
-                <h4 className="font-bold text-blue-600 flex items-center gap-2">
-                  ⚡ {station.name}
-                </h4>
-                <div className="space-y-1 text-sm text-muted-foreground my-2">
-                  <p>{station.chargerType.toUpperCase()} Charger</p>
-                  <p className="font-bold text-foreground">{station.powerRating}kW Power</p>
-                  <p className={station.available ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
-                    {station.available ? "Ready to use" : "Occupied"}
+        {/* 🛣️ ROUTE LINE */}
+        {routePoints.length > 0 && (
+          <Polyline
+            positions={routePoints as any}
+            pathOptions={{ color: "#2563eb", weight: 5 }}
+          />
+        )}
+
+        {/* 🅿️ PARKING SPOTS */}
+        {spots.map((spot) => {
+          const lat = Number(spot.location.lat);
+          const lng = Number(spot.location.lng);
+
+          console.log("📍 Marker:", lat, lng, spot.name); // DEBUG
+
+          return (
+            <Marker
+              key={spot.id}
+              position={[lat, lng]}
+              icon={
+                selectedSpot?.id === spot.id
+                  ? selectedIcon
+                  : spot.probability === "High"
+                  ? highIcon
+                  : spot.probability === "Medium"
+                  ? medIcon
+                  : lowIcon
+              }
+              eventHandlers={{
+                click: () => onSpotSelect(spot),
+              }}
+            >
+              <Popup>
+                <div className="space-y-2 min-w-[200px]">
+                  <h3 className="font-bold">{spot.name}</h3>
+                  <p className="text-sm">
+                    {spot.distance} • {spot.walkingTime}
                   </p>
+                  <p className="text-sm">
+                    🅿️ Spaces: {spot.availableSpaces}
+                  </p>
+                  <p className="text-sm">⭐ Score: {spot.score}</p>
+
+                  <Button
+                    size="sm"
+                    className="w-full gap-2"
+                    onClick={() => navigateTo(lat, lng)}
+                  >
+                    <Navigation className="h-3 w-3" />
+                    Navigate
+                  </Button>
                 </div>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  className="w-full gap-2" 
-                  onClick={() => {
-                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${station.latitude},${station.longitude}`, '_blank');
-                  }}
-                >
-                  <Navigation className="h-3 w-3" />
-                  Navigate to Charger
-                </Button>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+              </Popup>
+            </Marker>
+          );
+        })}
       </MapContainer>
     </div>
   );

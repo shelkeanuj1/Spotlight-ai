@@ -1,94 +1,124 @@
 import type { Config } from "tailwindcss";
 
-export default {
+const config: Config = {
   darkMode: ["class"],
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
       borderRadius: {
-        lg: ".5625rem", /* 9px */
-        md: ".375rem", /* 6px */
-        sm: ".1875rem", /* 3px */
+        sm: "0.375rem",
+        md: "0.75rem",
+        lg: "1rem",
+        xl: "1.25rem",
+        "2xl": "1.75rem",
       },
+
+      boxShadow: {
+        soft: "0 6px 20px rgba(0,0,0,0.08)",
+        card: "0 10px 30px rgba(0,0,0,0.10)",
+        glow: "0 0 0 0 rgba(26,115,232,0.4)",
+      },
+
       colors: {
-        // Flat / base colors (regular buttons)
+        /* ================= GOOGLE MAPS STYLE COLORS ================= */
+
+        // Base system (ShadCN compatible)
         background: "hsl(var(--background) / <alpha-value>)",
         foreground: "hsl(var(--foreground) / <alpha-value>)",
         border: "hsl(var(--border) / <alpha-value>)",
         input: "hsl(var(--input) / <alpha-value>)",
+
         card: {
           DEFAULT: "hsl(var(--card) / <alpha-value>)",
           foreground: "hsl(var(--card-foreground) / <alpha-value>)",
           border: "hsl(var(--card-border) / <alpha-value>)",
         },
+
         popover: {
           DEFAULT: "hsl(var(--popover) / <alpha-value>)",
           foreground: "hsl(var(--popover-foreground) / <alpha-value>)",
           border: "hsl(var(--popover-border) / <alpha-value>)",
         },
+
         primary: {
-          DEFAULT: "hsl(var(--primary) / <alpha-value>)",
-          foreground: "hsl(var(--primary-foreground) / <alpha-value>)",
-          border: "var(--primary-border)",
+          DEFAULT: "#1a73e8", // Google Blue
+          foreground: "#ffffff",
+          border: "#1a73e8",
         },
+
         secondary: {
-          DEFAULT: "hsl(var(--secondary) / <alpha-value>)",
-          foreground: "hsl(var(--secondary-foreground) / <alpha-value>)",
-          border: "var(--secondary-border)",
+          DEFAULT: "#34a853", // Google Green
+          foreground: "#ffffff",
+          border: "#34a853",
         },
-        muted: {
-          DEFAULT: "hsl(var(--muted) / <alpha-value>)",
-          foreground: "hsl(var(--muted-foreground) / <alpha-value>)",
-          border: "var(--muted-border)",
-        },
+
         accent: {
-          DEFAULT: "hsl(var(--accent) / <alpha-value>)",
-          foreground: "hsl(var(--accent-foreground) / <alpha-value>)",
-          border: "var(--accent-border)",
+          DEFAULT: "#fbbc04", // Google Yellow
+          foreground: "#202124",
+          border: "#fbbc04",
         },
+
         destructive: {
-          DEFAULT: "hsl(var(--destructive) / <alpha-value>)",
-          foreground: "hsl(var(--destructive-foreground) / <alpha-value>)",
-          border: "var(--destructive-border)",
+          DEFAULT: "#ea4335", // Google Red
+          foreground: "#ffffff",
+          border: "#ea4335",
         },
-        ring: "hsl(var(--ring) / <alpha-value>)",
-        chart: {
-          "1": "hsl(var(--chart-1) / <alpha-value>)",
-          "2": "hsl(var(--chart-2) / <alpha-value>)",
-          "3": "hsl(var(--chart-3) / <alpha-value>)",
-          "4": "hsl(var(--chart-4) / <alpha-value>)",
-          "5": "hsl(var(--chart-5) / <alpha-value>)",
+
+        muted: {
+          DEFAULT: "#f1f3f4",
+          foreground: "#5f6368",
+          border: "#dadce0",
         },
+
+        ring: "#1a73e8",
+
+        /* ================= SIDEBAR THEME ================= */
+
         sidebar: {
-          ring: "hsl(var(--sidebar-ring) / <alpha-value>)",
-          DEFAULT: "hsl(var(--sidebar) / <alpha-value>)",
-          foreground: "hsl(var(--sidebar-foreground) / <alpha-value>)",
-          border: "hsl(var(--sidebar-border) / <alpha-value>)",
+          DEFAULT: "#ffffff",
+          foreground: "#202124",
+          border: "#dadce0",
+          ring: "#1a73e8",
         },
+
         "sidebar-primary": {
-          DEFAULT: "hsl(var(--sidebar-primary) / <alpha-value>)",
-          foreground: "hsl(var(--sidebar-primary-foreground) / <alpha-value>)",
-          border: "var(--sidebar-primary-border)",
+          DEFAULT: "#1a73e8",
+          foreground: "#ffffff",
+          border: "#1a73e8",
         },
+
         "sidebar-accent": {
-          DEFAULT: "hsl(var(--sidebar-accent) / <alpha-value>)",
-          foreground: "hsl(var(--sidebar-accent-foreground) / <alpha-value>)",
-          border: "var(--sidebar-accent-border)"
+          DEFAULT: "#e8f0fe",
+          foreground: "#1a73e8",
+          border: "#d2e3fc",
         },
+
+        /* ================= STATUS COLORS ================= */
+
         status: {
-          online: "rgb(34 197 94)",
-          away: "rgb(245 158 11)",
-          busy: "rgb(239 68 68)",
-          offline: "rgb(156 163 175)",
+          online: "#34a853",
+          away: "#fbbc04",
+          busy: "#ea4335",
+          offline: "#9aa0a6",
+        },
+
+        /* ================= CHART COLORS ================= */
+
+        chart: {
+          1: "#1a73e8",
+          2: "#34a853",
+          3: "#fbbc04",
+          4: "#ea4335",
+          5: "#9334e6",
         },
       },
+
       fontFamily: {
-        sans: ["var(--font-sans)"],
-        serif: ["var(--font-serif)"],
-        mono: ["var(--font-mono)"],
-        display: ["var(--font-display)"],
-        body: ["var(--font-body)"],
+        sans: ["Inter", "system-ui", "sans-serif"],
+        display: ["Poppins", "sans-serif"],
+        mono: ["JetBrains Mono", "monospace"],
       },
+
       keyframes: {
         "accordion-down": {
           from: { height: "0" },
@@ -98,12 +128,26 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        fadeIn: {
+          from: { opacity: "0", transform: "translateY(10px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        glow: {
+          "0%": { boxShadow: "0 0 0 rgba(26,115,232,0.0)" },
+          "100%": { boxShadow: "0 0 20px rgba(26,115,232,0.3)" },
+        },
       },
+
       animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
+        "accordion-down": "accordion-down 0.25s ease-out",
+        "accordion-up": "accordion-up 0.25s ease-out",
+        fadeIn: "fadeIn 0.4s ease-out",
+        glow: "glow 1.5s infinite alternate",
       },
     },
   },
+
   plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
-} satisfies Config;
+};
+
+export default config;

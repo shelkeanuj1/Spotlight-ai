@@ -13,27 +13,32 @@ export function useParkingSearch(params: SearchInput | null) {
     queryKey: [api.parking.search.path, params],
     queryFn: async () => {
       if (!params) return null;
-      
-      const queryParams: Record<string, string> = {
-        lat: params.lat.toString(),
-        lng: params.lng.toString(),
-      };
-      
-      if (params.radius) queryParams.radius = params.radius.toString();
+
+const queryParams: Record<string, string> = {
+  lat: params.lat.toString(),
+  lng: params.lng.toString(),
+  radius: "20000", // ✅ 20km radius
+};
+
+
       if (params.query) queryParams.query = params.query;
 
       const url = buildUrl(api.parking.search.path);
       const queryString = new URLSearchParams(queryParams).toString();
-      
-      const res = await fetch(`${url}?${queryString}`, { credentials: "include" });
+
+      const res = await fetch(`${url}?${queryString}`);
       if (!res.ok) throw new Error("Failed to fetch parking spots");
-      
-      // Manually parse here because simulate response is complex
-      return await res.json() as SearchResponse;
+
+      const data = await res.json();
+
+      console.log("🧠 Parking API Response:", data); // DEBUG
+
+      return data as SearchResponse;
     },
-    enabled: !!params, // Only fetch if params are provided
+    enabled: !!params,
   });
 }
+
 
 // Hook for fetching search history
 export function useSearchHistory() {
