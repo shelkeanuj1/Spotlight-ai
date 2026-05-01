@@ -3,7 +3,12 @@ import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import authRoutes from "./routes/auth";
-
+import {
+  searchGooglePlaces,
+  convertToParkingPrediction,
+  geocodeGoogleAddress,
+  getGoogleDirections,
+} from "./google-places";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -13,7 +18,79 @@ export async function registerRoutes(
   // ✅ AUTH ROUTES
   app.use("/api/auth", authRoutes);
 
-  
+  // ================= GOOGLE PLACES SEARCH =================
+  app.get("/api/google/places", async (req, res) => {
+    try {
+      const lat = parseFloat(req.query.lat as string);
+      const lng = parseFloat(req.query.lng as string);
+      const radius = req.query.radius ? parseInt(req.query.radius as string) : 5000;
+      const type = (req.query.type as string) || "parking";
+
+      if (isNaN(lat) || isNaN(lng)) {
+        return res.status(400).json({ message: "Invalid coordinates" });
+      }
+
+      const places = await searchGooglePlaces(lat, lng, radius, type as "parking" | "electric_car_charging_station");
+      
+      const predictions = places.map(place => convertToParkingPrediction(place, lat, lng));
+      
+      res.json({ places: predictions });
+    } catch (err) {
+      console.error("❌ Google Places error:", err);
+      res.status(500).json({ message: "Failed to fetch places" });
+    }
+  });
+
+  app.get("/api/google/geocode", async (req, res) => {
+    try {
+      const address = (req.query.address as string) || "";
+      if (!address.trim()) {
+        return res.status(400).json({ message: "Address is required" });
+      }
+
+      const location = await geocodeGoogleAddress(address);
+      if (!location) {
+        return res.status(404).json({ message: "Location not found" });
+      }
+
+      res.json({ location });
+    } catch (err) {
+      console.error("❌ Google Geocoding error:", err);
+      res.status(500).json({ message: "Failed to geocode address" });
+    }
+  });
+
+  app.get("/api/google/directions", async (req, res) => {
+    try {
+      const originLat = parseFloat(req.query.originLat as string);
+      const originLng = parseFloat(req.query.originLng as string);
+      const destinationLat = parseFloat(req.query.destinationLat as string);
+      const destinationLng = parseFloat(req.query.destinationLng as string);
+
+      if (
+        [originLat, originLng, destinationLat, destinationLng].some((val) =>
+          Number.isNaN(val)
+        )
+      ) {
+        return res.status(400).json({ message: "Invalid coordinates" });
+      }
+
+      const route = await getGoogleDirections(
+        { lat: originLat, lng: originLng },
+        { lat: destinationLat, lng: destinationLng }
+      );
+
+      if (!route) {
+        return res.status(404).json({ message: "Route not found" });
+      }
+
+      res.json({ route });
+    } catch (err) {
+      console.error("❌ Google Directions error:", err);
+      res.status(500).json({ message: "Failed to fetch directions" });
+    }
+  });
+
 
   // ================= PARKING SEARCH =================
 app.get(api.parking.search.path, async (req, res) => {

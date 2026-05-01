@@ -21,7 +21,7 @@ It combines **AI scoring, geolocation, maps, and backend APIs** to provide a Goo
 ### 🗺️ Interactive Map (Google Maps Style)
 
 * User location detection
-* Destination search (OpenStreetMap / Nominatim)
+* Destination search (Google Geocoding API)
 * Parking markers with smart icons
 * Route line from user → parking spot
 * Radius search visualization
@@ -75,7 +75,7 @@ It combines **AI scoring, geolocation, maps, and backend APIs** to provide a Goo
 * Vite
 * Tailwind CSS
 * ShadCN UI
-* React Leaflet (Maps)
+* Google Maps JavaScript API
 * Framer Motion
 * React Query
 
@@ -89,9 +89,14 @@ It combines **AI scoring, geolocation, maps, and backend APIs** to provide a Goo
 
 ### APIs & Tools
 
-* OpenStreetMap / Nominatim
-* Leaflet.js
 * Google Maps Navigation Links
+
+### Google Maps Platform (Enabled)
+
+* Maps JavaScript API
+* Places API
+* Directions API
+* Geocoding API
 
 ---
 
@@ -256,7 +261,6 @@ Response:
 * Admin panel for parking data
 * Mobile app (React Native / Flutter)
 * Real-world IoT parking sensors
-* Google Maps API integration
 * Role-based authentication
 
 ---

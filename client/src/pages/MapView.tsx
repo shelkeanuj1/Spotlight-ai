@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Layout } from "@/components/Layout";
-import { ParkingMap } from "@/components/Map";
+import { GoogleParkingMap } from "@/components/GoogleParkingMap";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
@@ -33,19 +33,25 @@ export default function MapView() {
   // ✅ Search destination → lat/lng
   const searchDestination = async () => {
     if (!destination) return;
+    try {
+      const res = await fetch(
+        `/api/google/geocode?address=${encodeURIComponent(destination)}`
+      );
+      const data = await res.json();
 
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destination)}`
-    );
-    const data = await res.json();
+      if (!res.ok || !data?.location) {
+        alert("Location not found");
+        return;
+      }
 
-    if (data && data.length > 0) {
-      const lat = parseFloat(data[0].lat);
-      const lng = parseFloat(data[0].lon);
-      setTargetLocation({ lat, lng });
+      setTargetLocation({
+        lat: Number(data.location.lat),
+        lng: Number(data.location.lng),
+      });
       setSelectedSpot(null);
-    } else {
-      alert("Location not found 😢");
+    } catch (error) {
+      console.error("Failed to geocode destination:", error);
+      alert("Unable to search location right now");
     }
   };
 
@@ -107,10 +113,9 @@ export default function MapView() {
         {/* 🗺️ MAP */}
         <div className="absolute inset-0 z-0">
           {searchCenter && (
-            <ParkingMap
+            <GoogleParkingMap
               center={searchCenter}
               userLocation={userLocation}
-              targetLocation={targetLocation}
               spots={spots}
               selectedSpot={selectedSpot}
               onSpotSelect={handleSpotSelect}

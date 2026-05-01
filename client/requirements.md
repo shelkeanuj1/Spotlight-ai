@@ -1,6 +1,5 @@
 ## Packages
-leaflet | Interactive maps
-react-leaflet | React components for Leaflet maps
+Google Maps JavaScript API | Interactive maps, markers, directions, places
 recharts | Analytics charts for history/insights
 framer-motion | Smooth animations for UI elements
 
@@ -10,4 +9,3 @@ fontFamily: {
   display: ["var(--font-display)"],
   body: ["var(--font-body)"],
 }
-Leaflet CSS import required in main entry or index.css
